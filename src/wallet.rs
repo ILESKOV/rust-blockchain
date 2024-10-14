@@ -13,7 +13,7 @@ pub struct Wallet {
 impl Wallet {
     pub fn new() -> Self {
         let mut rng = OsRng;
-        let signing_key = SigningKey::from_bytes(&secret_key_bytes).unwrap();
+        let signing_key = SigningKey::new(&mut rng);
         Wallet { signing_key }
     }
 
@@ -27,8 +27,8 @@ impl Wallet {
 
     pub fn save_to_file(&self, filename: &str) {
         let verification_key = VerificationKey::from(&self.signing_key);
-        let public_key_hex = hex::encode(verification_key.to_bytes());
-        let secret_key_hex = hex::encode(self.signing_key.to_bytes());
+        let public_key_hex = hex::encode(verification_key.as_ref());
+        let secret_key_hex = hex::encode(self.signing_key.as_ref());
         let data = format!("{}\n{}", public_key_hex, secret_key_hex);
         fs::write(filename, data).expect("Unable to save wallet");
     }
@@ -37,7 +37,7 @@ impl Wallet {
         let contents = fs::read_to_string(filename).expect("Unable to read wallet file");
         let lines: Vec<&str> = contents.lines().collect();
         let secret_key_bytes = hex::decode(lines[1]).unwrap();
-        let signing_key = SigningKey::try_from(&secret_key_bytes[..]).unwrap();
+        let signing_key = SigningKey::try_from(secret_key_bytes.as_slice()).unwrap();
         Wallet::from_signing_key(signing_key)
     }
 
