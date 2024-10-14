@@ -76,10 +76,10 @@ pub fn generate_transaction_proof(amount: u64) -> Proof {
     }
 }
 
-pub fn verify_transaction_proof(proof: &Proof) -> bool {
+pub fn verify_transaction_proof(proof_data: &Proof) -> bool {
     // Deserialize the proof and vk
-    let proof: bellman::groth16::Proof<Bls12> = bincode::deserialize(&proof.proof).unwrap();
-    let pvk: bellman::groth16::PreparedVerifyingKey<Bls12> = bincode::deserialize(&proof.vk).unwrap();
+    let proof: bellman::groth16::Proof<Bls12> = bincode::deserialize(&proof_data.proof).unwrap();
+    let pvk: bellman::groth16::PreparedVerifyingKey<Bls12> = bincode::deserialize(&proof_data.vk).unwrap();
 
     // No public inputs in this example
     let public_inputs = [];

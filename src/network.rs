@@ -29,7 +29,7 @@ impl Network {
     }
 }
 
-async fn handle_connection(mut socket: TcpStream, blockchain: Arc<Mutex<Blockchain>>) {
+async fn handle_connection(mut socket: TcpStream, _blockchain: Arc<Mutex<Blockchain>>) {
     let mut buffer = [0u8; 1024];
     loop {
         let n = match socket.read(&mut buffer).await {

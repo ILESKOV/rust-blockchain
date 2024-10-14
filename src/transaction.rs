@@ -2,6 +2,7 @@
 
 use serde::{Serialize, Deserialize};
 use ed25519_dalek::{PublicKey, Signature, Verifier, Keypair};
+use ed25519_dalek::Signer; // Import the Signer trait
 use sha2::{Sha256, Digest};
 use crate::zk_proofs::{generate_transaction_proof, Proof};
 

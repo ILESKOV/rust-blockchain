@@ -10,10 +10,11 @@ sha2 = "0.10"
 hex = "0.4"
 tokio = { version = "1.28.2", features = ["full"] }
 ed25519-dalek = "1.0.1"
-rand = { version = "0.8", features = ["std"] }
+rand = { version = "0.7.3", features = ["std"] }
+rand_core = "0.5.1"
 clap = { version = "3.2.25", features = ["derive"] }
-bellman = "0.14.0"
-blstrs = { version = "0.7.1", features = ["serde"] } # Removed `std` feature
+bellman = { version = "0.14.0", features = ["serde"] }
+blstrs = { version = "0.7.1", features = ["serde"] }
 ff = "0.13"
 group = "0.13"
 chrono = "0.4"
