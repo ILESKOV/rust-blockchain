@@ -1,17 +1,27 @@
 // src/main.rs
-use tokio::runtime::Runtime;
+
+mod blockchain;
+mod block;
+mod transaction;
+mod wallet;
+mod network;
+mod zk_proofs;
+mod cli;
+
 use std::sync::{Arc, Mutex};
-use crate::blockchain::Blockchain;
-use crate::network::Network;
+use blockchain::Blockchain;
+use network::Network;
 
 #[tokio::main]
 async fn main() {
     let blockchain = Arc::new(Mutex::new(Blockchain::new()));
-    let mut network = Network {
-        peers: vec![],
-        blockchain: Arc::clone(&blockchain),
-    };
-    let addr = "127.0.0.1:6000";
-    network.start_server(addr).await;
-    cli::run_cli(Arc::clone(&blockchain));
+    let network = Network::new(Arc::clone(&blockchain));
+
+    // Start the networking in a separate task
+    tokio::spawn(async move {
+        network.start_server("127.0.0.1:6000").await;
+    });
+
+    // Run the CLI
+    cli::run_cli(Arc::clone(&blockchain)).await;
 }

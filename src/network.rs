@@ -1,17 +1,21 @@
 // src/network.rs
+
 use tokio::net::{TcpListener, TcpStream};
 use tokio::prelude::*;
-use serde_json::{Result as SerdeResult, Value};
+use serde_json::{Value};
 use std::sync::{Arc, Mutex};
 use crate::blockchain::Blockchain;
 
 pub struct Network {
-    pub peers: Vec<String>,
     pub blockchain: Arc<Mutex<Blockchain>>,
 }
 
 impl Network {
-    pub async fn start_server(&mut self, addr: &str) {
+    pub fn new(blockchain: Arc<Mutex<Blockchain>>) -> Self {
+        Network { blockchain }
+    }
+
+    pub async fn start_server(&self, addr: &str) {
         let listener = TcpListener::bind(addr).await.unwrap();
         println!("Node listening on {}", addr);
 
@@ -23,8 +27,6 @@ impl Network {
             });
         }
     }
-
-    // Additional methods for peer discovery will be implemented later
 }
 
 async fn handle_connection(mut socket: TcpStream, blockchain: Arc<Mutex<Blockchain>>) {

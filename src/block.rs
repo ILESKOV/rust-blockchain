@@ -1,12 +1,14 @@
 // src/block.rs
+
 use serde::{Serialize, Deserialize};
 use crate::transaction::Transaction;
 use sha2::{Sha256, Digest};
+use chrono::Utc;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Block {
     pub index: u64,
-    pub timestamp: u128,
+    pub timestamp: i64,
     pub previous_hash: String,
     pub nonce: u64,
     pub transactions: Vec<Transaction>,
@@ -14,7 +16,8 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(index: u64, timestamp: u128, previous_hash: String, transactions: Vec<Transaction>) -> Self {
+    pub fn new(index: u64, previous_hash: String, transactions: Vec<Transaction>) -> Self {
+        let timestamp = Utc::now().timestamp();
         let nonce = 0;
         let mut block = Block {
             index,
