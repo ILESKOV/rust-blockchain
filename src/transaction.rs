@@ -1,10 +1,10 @@
 // src/transaction.rs
 
 use serde::{Serialize, Deserialize};
-use ed25519_zebra::{VerificationKey, Signature};
+use ed25519_zebra::{VerificationKey, SigningKey, Signature};
 use sha2::{Sha256, Digest};
 use crate::zk_proofs::{generate_transaction_proof, ProofData};
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Transaction {
@@ -32,9 +32,10 @@ impl Transaction {
         }
     }
 
-    pub fn sign_transaction(&mut self, signing_key: &ed25519_zebra::SigningKey) {
+    pub fn sign_transaction(&mut self, signing_key: &SigningKey) {
         let message = self.calculate_hash();
         let signature = signing_key.sign(message.as_bytes());
+        // Use as_ref() to get the byte slice
         self.signature = Some(hex::encode(signature.as_ref()));
     }
 
@@ -45,7 +46,10 @@ impl Transaction {
 
         if let Some(sig_hex) = &self.signature {
             let signature_bytes = hex::decode(sig_hex).unwrap();
+
+            // Convert the byte slice into a Signature
             let signature = Signature::try_from(signature_bytes.as_slice()).unwrap();
+
             let public_key_bytes = hex::decode(&self.sender).unwrap();
             let verification_key = VerificationKey::try_from(public_key_bytes.as_slice()).unwrap();
             let message = self.calculate_hash();
