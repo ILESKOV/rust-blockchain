@@ -79,10 +79,16 @@ pub fn generate_transaction_proof(amount: u64) -> ProofData {
 pub fn verify_transaction_proof(proof_data: &ProofData) -> bool {
     // Deserialize the proof and vk using read methods
     let mut proof_cursor = Cursor::new(&proof_data.proof);
-    let proof = Proof::<Bls12>::read(&mut proof_cursor).unwrap();
+    let proof = match Proof::<Bls12>::read(&mut proof_cursor) {
+        Ok(p) => p,
+        Err(_) => return false,
+    };
 
     let mut vk_cursor = Cursor::new(&proof_data.vk);
-    let vk = VerifyingKey::<Bls12>::read(&mut vk_cursor).unwrap();
+    let vk = match VerifyingKey::<Bls12>::read(&mut vk_cursor) {
+        Ok(v) => v,
+        Err(_) => return false,
+    };
     let pvk = prepare_verifying_key(&vk);
 
     // No public inputs in this example

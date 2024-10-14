@@ -21,12 +21,14 @@ impl Transaction {
         Transaction { sender, recipient, amount, signature: None, proof }
     }
 
+    const MINING_REWARD: u64 = 50;
+
     pub fn new_reward(recipient: String) -> Self {
-        let proof = generate_transaction_proof(50); // Reward amount
+        let proof = generate_transaction_proof(Self::MINING_REWARD); // Use constant
         Transaction {
             sender: String::from("System"),
             recipient,
-            amount: 50,
+            amount: Self::MINING_REWARD,
             signature: None,
             proof,
         }
@@ -53,11 +55,29 @@ impl Transaction {
                     return false;
                 }
             };
-            let signature_array: [u8; 64] = signature_bytes.as_slice().try_into().unwrap();
+            let signature_array: [u8; 64] = match signature_bytes.as_slice().try_into() {
+                Ok(arr) => arr,
+                Err(_) => {
+                    eprintln!("Invalid signature length");
+                    return false;
+                }
+            };
             let signature = Signature::from(signature_array);
 
-            let public_key_bytes = hex::decode(&self.sender).unwrap();
-            let verification_key = VerificationKey::try_from(public_key_bytes.as_slice()).unwrap();
+            let public_key_bytes = match hex::decode(&self.sender) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    eprintln!("Error decoding public key: {}", e);
+                    return false;
+                }
+            };
+            let verification_key = match VerificationKey::try_from(public_key_bytes.as_slice()) {
+                Ok(vk) => vk,
+                Err(e) => {
+                    eprintln!("Error creating verification key: {}", e);
+                    return false;
+                }
+            };
             let message = self.calculate_hash();
             verification_key.verify(&signature, message.as_bytes()).is_ok()
         } else {

@@ -25,21 +25,25 @@ impl Wallet {
         self.signing_key.sign(message)
     }
 
-    pub fn save_to_file(&self, filename: &str) {
+    pub fn save_to_file(&self, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let verification_key = VerificationKey::from(&self.signing_key);
         let public_key_hex = hex::encode(verification_key.as_ref());
         let secret_key_hex = hex::encode(self.signing_key.as_ref());
         let data = format!("{}\n{}", public_key_hex, secret_key_hex);
-        fs::write(filename, data).expect("Unable to save wallet");
+        fs::write(filename, data)?;
+        Ok(())
     }
-
-    pub fn load_from_file(filename: &str) -> Self {
-        let contents = fs::read_to_string(filename).expect("Unable to read wallet file");
+    
+    pub fn load_from_file(filename: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let contents = fs::read_to_string(filename)?;
         let lines: Vec<&str> = contents.lines().collect();
-        let secret_key_bytes = hex::decode(lines[1]).unwrap();
-        let signing_key = SigningKey::try_from(secret_key_bytes.as_slice()).unwrap();
-        Wallet::from_signing_key(signing_key)
-    }
+        if lines.len() < 2 {
+            return Err("Invalid wallet file format".into());
+        }
+        let secret_key_bytes = hex::decode(lines[1])?;
+        let signing_key = SigningKey::try_from(secret_key_bytes.as_slice())?;
+        Ok(Wallet::from_signing_key(signing_key))
+    }    
 
     pub fn public_key_hex(&self) -> String {
         let verification_key = VerificationKey::from(&self.signing_key);
