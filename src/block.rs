@@ -34,7 +34,7 @@ impl Block {
     pub fn calculate_hash(&self) -> String {
         let data = serde_json::to_string(self).unwrap();
         let mut hasher = Sha256::new();
-        hasher.update(data);
+        hasher.update(data.as_bytes());
         let result = hasher.finalize();
         hex::encode(result)
     }

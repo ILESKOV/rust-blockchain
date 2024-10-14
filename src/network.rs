@@ -1,8 +1,8 @@
 // src/network.rs
 
 use tokio::net::{TcpListener, TcpStream};
-use tokio::prelude::*;
-use serde_json::{Value};
+use tokio::io::{AsyncReadExt};
+use serde_json::Value;
 use std::sync::{Arc, Mutex};
 use crate::blockchain::Blockchain;
 

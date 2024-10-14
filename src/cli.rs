@@ -5,9 +5,6 @@ use crate::wallet::Wallet;
 use crate::transaction::Transaction;
 use crate::blockchain::Blockchain;
 use std::sync::{Arc, Mutex};
-use tokio::io::{self, AsyncBufReadExt};
-use tokio::fs::File;
-use tokio::prelude::*;
 
 pub async fn run_cli(blockchain: Arc<Mutex<Blockchain>>) {
     let matches = App::new("Privacy Blockchain")
@@ -34,7 +31,7 @@ pub async fn run_cli(blockchain: Arc<Mutex<Blockchain>>) {
             let wallet = Wallet::new();
             wallet.save_to_file("wallet.dat");
             println!("Wallet created and saved to wallet.dat");
-            println!("Public Key: {}", hex::encode(wallet.public_key.to_bytes()));
+            println!("Public Key: {}", wallet.public_key_hex());
         } else if matches.subcommand_matches("balance").is_some() {
             // Implement balance checking
             println!("Balance feature not implemented yet.");
@@ -49,14 +46,11 @@ pub async fn run_cli(blockchain: Arc<Mutex<Blockchain>>) {
         }
         let wallet = Wallet::load_from_file("wallet.dat");
         let mut tx = Transaction::new(
-            hex::encode(wallet.public_key.to_bytes()),
+            wallet.public_key_hex(),
             recipient.to_string(),
             amount,
         );
-        tx.sign_transaction(&ed25519_dalek::Keypair {
-            secret: wallet.secret_key.clone(),
-            public: wallet.public_key.clone(),
-        });
+        tx.sign_transaction(&wallet.keypair);
         let mut bc = blockchain.lock().unwrap();
         bc.add_transaction(tx);
         println!("Transaction added to pending transactions.");

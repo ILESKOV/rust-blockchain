@@ -1,7 +1,7 @@
 // src/transaction.rs
 
 use serde::{Serialize, Deserialize};
-use ed25519_dalek::{PublicKey, Signature, Verifier, Signer, Keypair};
+use ed25519_dalek::{PublicKey, Signature, Verifier, Keypair};
 use sha2::{Sha256, Digest};
 use crate::zk_proofs::{generate_transaction_proof, Proof};
 
