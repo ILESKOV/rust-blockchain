@@ -12,7 +12,7 @@ fn test_transaction_creation() {
         "recipient_address".to_string(),
         100,
     );
-    tx.sign_transaction(&wallet.keypair);
+    tx.sign_transaction(&wallet.signing_key);
     assert!(tx.is_valid());
 }
 
@@ -25,7 +25,7 @@ fn test_blockchain() {
         "recipient_address".to_string(),
         100,
     );
-    tx.sign_transaction(&wallet.keypair);
+    tx.sign_transaction(&wallet.signing_key);
     blockchain.add_transaction(tx);
     blockchain.mine_pending_transactions("miner_address");
     assert_eq!(blockchain.chain.len(), 2);

@@ -1,16 +1,9 @@
 // src/main.rs
 
-mod blockchain;
-mod block;
-mod transaction;
-mod wallet;
-mod network;
-mod zk_proofs;
-mod cli;
-
 use std::sync::{Arc, Mutex};
-use blockchain::Blockchain;
-use network::Network;
+use privacy_blockchain::blockchain::Blockchain;
+use privacy_blockchain::network::Network;
+use privacy_blockchain::cli;
 
 #[tokio::main]
 async fn main() {

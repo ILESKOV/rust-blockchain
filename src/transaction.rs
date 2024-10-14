@@ -46,7 +46,13 @@ impl Transaction {
         }
 
         if let Some(sig_hex) = &self.signature {
-            let signature_bytes = hex::decode(sig_hex).unwrap();
+            let signature_bytes = match hex::decode(sig_hex) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    eprintln!("Error decoding signature: {}", e);
+                    return false;
+                }
+            };
             let signature_array: [u8; 64] = signature_bytes.as_slice().try_into().unwrap();
             let signature = Signature::from(signature_array);
 
