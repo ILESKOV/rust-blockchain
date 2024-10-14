@@ -2,13 +2,13 @@
 
 use bellman::{Circuit, ConstraintSystem, SynthesisError};
 use blstrs::{Bls12, Scalar as Fr};
-use ff::PrimeField;
 use bellman::groth16::{
-    create_random_proof, generate_random_parameters, prepare_verifying_key, verify_proof,
+    create_random_proof, generate_random_parameters, prepare_verifying_key, verify_proof, Proof,
+    VerifyingKey,
 };
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
-use bincode;
+use std::io::{Cursor, Read, Write};
 
 #[derive(Clone)]
 pub struct TransactionProof {
@@ -40,13 +40,13 @@ impl Circuit<Fr> for TransactionProof {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Proof {
+pub struct ProofData {
     pub proof: Vec<u8>,
     pub vk: Vec<u8>,
 }
 
-pub fn generate_transaction_proof(amount: u64) -> Proof {
-    let mut rng = OsRng;
+pub fn generate_transaction_proof(amount: u64) -> ProofData {
+    let mut rng = OsRng{};
     let amount_fr = Fr::from(amount);
 
     // Generate parameters
@@ -66,20 +66,27 @@ pub fn generate_transaction_proof(amount: u64) -> Proof {
     // Create a proof
     let proof = create_random_proof(circuit, &params, &mut rng).unwrap();
 
-    // Serialize the proof and vk
-    let proof_bytes = bincode::serialize(&proof).unwrap();
-    let vk_bytes = bincode::serialize(&pvk).unwrap();
+    // Serialize the proof and vk using write methods
+    let mut proof_bytes = vec![];
+    proof.write(&mut proof_bytes).unwrap();
 
-    Proof {
+    let mut vk_bytes = vec![];
+    params.vk.write(&mut vk_bytes).unwrap();
+
+    ProofData {
         proof: proof_bytes,
         vk: vk_bytes,
     }
 }
 
-pub fn verify_transaction_proof(proof_data: &Proof) -> bool {
-    // Deserialize the proof and vk
-    let proof: bellman::groth16::Proof<Bls12> = bincode::deserialize(&proof_data.proof).unwrap();
-    let pvk: bellman::groth16::PreparedVerifyingKey<Bls12> = bincode::deserialize(&proof_data.vk).unwrap();
+pub fn verify_transaction_proof(proof_data: &ProofData) -> bool {
+    // Deserialize the proof and vk using read methods
+    let mut proof_cursor = Cursor::new(&proof_data.proof);
+    let proof = Proof::<Bls12>::read(&mut proof_cursor).unwrap();
+
+    let mut vk_cursor = Cursor::new(&proof_data.vk);
+    let vk = VerifyingKey::<Bls12>::read(&mut vk_cursor).unwrap();
+    let pvk = prepare_verifying_key(&vk);
 
     // No public inputs in this example
     let public_inputs = [];

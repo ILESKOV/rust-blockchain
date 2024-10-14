@@ -1,10 +1,9 @@
 // src/transaction.rs
 
 use serde::{Serialize, Deserialize};
-use ed25519_dalek::{PublicKey, Signature, Verifier, Keypair};
-use ed25519_dalek::Signer; // Import the Signer trait
+use ed25519_dalek::{PublicKey, Signature, Verifier, Keypair, Signer};
 use sha2::{Sha256, Digest};
-use crate::zk_proofs::{generate_transaction_proof, Proof};
+use crate::zk_proofs::{generate_transaction_proof, ProofData};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Transaction {
@@ -12,7 +11,7 @@ pub struct Transaction {
     pub recipient: String,
     pub amount: u64,
     pub signature: Option<String>,
-    pub proof: Proof,
+    pub proof: ProofData,
 }
 
 impl Transaction {

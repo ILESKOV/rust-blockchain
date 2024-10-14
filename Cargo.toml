@@ -13,8 +13,8 @@ ed25519-dalek = "1.0.1"
 rand = { version = "0.7.3", features = ["std"] }
 rand_core = "0.5.1"
 clap = { version = "3.2.25", features = ["derive"] }
-bellman = { version = "0.14.0", features = ["serde"] }
-blstrs = { version = "0.7.1", features = ["serde"] }
+bellman = "0.14.0"
+blstrs = "0.7.1"
 ff = "0.13"
 group = "0.13"
 chrono = "0.4"
