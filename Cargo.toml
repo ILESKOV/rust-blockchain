@@ -10,8 +10,8 @@ sha2 = "0.10"
 hex = "0.4"
 tokio = { version = "1.28.2", features = ["full"] }
 ed25519-dalek = "1.0.1"
-rand = { version = "0.7.3", features = ["std"] }
-rand_core = "0.5.1"
+rand = { version = "0.8.5", features = ["std"] }
+rand_core = "0.6.4"       # Updated to version 0.6
 clap = { version = "3.2.25", features = ["derive"] }
 bellman = "0.14.0"
 blstrs = "0.7.1"

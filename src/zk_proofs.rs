@@ -6,9 +6,9 @@ use bellman::groth16::{
     create_random_proof, generate_random_parameters, prepare_verifying_key, verify_proof, Proof,
     VerifyingKey,
 };
-use rand::rngs::OsRng;
+use rand_core::OsRng; // Use rand_core's OsRng
 use serde::{Deserialize, Serialize};
-use std::io::{Cursor, Read, Write};
+use std::io::Cursor;
 
 #[derive(Clone)]
 pub struct TransactionProof {
@@ -46,7 +46,7 @@ pub struct ProofData {
 }
 
 pub fn generate_transaction_proof(amount: u64) -> ProofData {
-    let mut rng = OsRng{};
+    let mut rng = OsRng; // Initialize OsRng from rand_core
     let amount_fr = Fr::from(amount);
 
     // Generate parameters
@@ -54,9 +54,6 @@ pub fn generate_transaction_proof(amount: u64) -> ProofData {
         let circuit = TransactionProof { amount: None };
         generate_random_parameters::<Bls12, _, _>(circuit, &mut rng).unwrap()
     };
-
-    // Prepare the verification key
-    let pvk = prepare_verifying_key(&params.vk);
 
     // Create an instance of the circuit with the actual amount
     let circuit = TransactionProof {

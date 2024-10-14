@@ -1,7 +1,7 @@
 // src/wallet.rs
 
 use ed25519_dalek::{Keypair, Signature, Signer};
-use rand::rngs::OsRng;
+use rand::rngs::OsRng; // Use rand's OsRng for ed25519-dalek
 use std::fs;
 use std::path::Path;
 
