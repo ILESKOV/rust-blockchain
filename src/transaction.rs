@@ -1,7 +1,7 @@
 // src/transaction.rs
 
 use serde::{Serialize, Deserialize};
-use ed25519_dalek::{PublicKey, Signature, Verifier, Keypair, Signer};
+use ed25519_zebra::{VerificationKey, Signature, SignatureError};
 use sha2::{Sha256, Digest};
 use crate::zk_proofs::{generate_transaction_proof, ProofData};
 
@@ -31,13 +31,10 @@ impl Transaction {
         }
     }
 
-    pub fn sign_transaction(&mut self, keypair: &Keypair) {
-        if self.sender != hex::encode(keypair.public.to_bytes()) {
-            panic!("You cannot sign transactions for other wallets!");
-        }
+    pub fn sign_transaction(&mut self, signing_key: &ed25519_zebra::SigningKey) {
         let message = self.calculate_hash();
-        let signature = keypair.sign(message.as_bytes());
-        self.signature = Some(hex::encode(signature.to_bytes()));
+        let signature = signing_key.sign(message.as_bytes());
+        self.signature = Some(hex::encode(signature.as_ref()));
     }
 
     pub fn is_valid(&self) -> bool {
@@ -47,11 +44,11 @@ impl Transaction {
 
         if let Some(sig_hex) = &self.signature {
             let signature_bytes = hex::decode(sig_hex).unwrap();
-            let signature = Signature::from_bytes(&signature_bytes).unwrap();
+            let signature = Signature::try_from(&signature_bytes[..]).unwrap();
             let public_key_bytes = hex::decode(&self.sender).unwrap();
-            let public_key = PublicKey::from_bytes(&public_key_bytes).unwrap();
+            let verification_key = VerificationKey::try_from(&public_key_bytes[..]).unwrap();
             let message = self.calculate_hash();
-            public_key.verify(message.as_bytes(), &signature).is_ok()
+            verification_key.verify(message.as_bytes(), &signature).is_ok()
         } else {
             false
         }
