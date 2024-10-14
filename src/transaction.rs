@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 use ed25519_zebra::{VerificationKey, Signature, SignatureError};
 use sha2::{Sha256, Digest};
 use crate::zk_proofs::{generate_transaction_proof, ProofData};
+use std::convert::TryFrom;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Transaction {
@@ -34,7 +35,7 @@ impl Transaction {
     pub fn sign_transaction(&mut self, signing_key: &ed25519_zebra::SigningKey) {
         let message = self.calculate_hash();
         let signature = signing_key.sign(message.as_bytes());
-        self.signature = Some(hex::encode(signature.as_ref()));
+        self.signature = Some(hex::encode(signature.to_bytes()));
     }
 
     pub fn is_valid(&self) -> bool {
@@ -44,11 +45,11 @@ impl Transaction {
 
         if let Some(sig_hex) = &self.signature {
             let signature_bytes = hex::decode(sig_hex).unwrap();
-            let signature = Signature::try_from(&signature_bytes[..]).unwrap();
+            let signature = Signature::from_bytes(&signature_bytes).unwrap();
             let public_key_bytes = hex::decode(&self.sender).unwrap();
             let verification_key = VerificationKey::try_from(&public_key_bytes[..]).unwrap();
             let message = self.calculate_hash();
-            verification_key.verify(message.as_bytes(), &signature).is_ok()
+            verification_key.verify(&signature, message.as_bytes()).is_ok()
         } else {
             false
         }

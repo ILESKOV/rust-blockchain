@@ -50,7 +50,7 @@ pub async fn run_cli(blockchain: Arc<Mutex<Blockchain>>) {
             recipient.to_string(),
             amount,
         );
-        tx.sign_transaction(&wallet.keypair);
+        tx.sign_transaction(&wallet.signing_key);
         let mut bc = blockchain.lock().unwrap();
         bc.add_transaction(tx);
         println!("Transaction added to pending transactions.");

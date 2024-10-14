@@ -4,6 +4,7 @@ use ed25519_zebra::{SigningKey, VerificationKey, Signature};
 use rand::rngs::OsRng;
 use std::fs;
 use std::path::Path;
+use std::convert::TryFrom;
 
 pub struct Wallet {
     pub signing_key: SigningKey,
@@ -12,7 +13,7 @@ pub struct Wallet {
 impl Wallet {
     pub fn new() -> Self {
         let mut rng = OsRng;
-        let signing_key = SigningKey::new(&mut rng);
+        let signing_key = SigningKey::from_bytes(&secret_key_bytes).unwrap();
         Wallet { signing_key }
     }
 
@@ -26,8 +27,8 @@ impl Wallet {
 
     pub fn save_to_file(&self, filename: &str) {
         let verification_key = VerificationKey::from(&self.signing_key);
-        let public_key_hex = hex::encode(verification_key.as_ref());
-        let secret_key_hex = hex::encode(self.signing_key.as_ref());
+        let public_key_hex = hex::encode(verification_key.to_bytes());
+        let secret_key_hex = hex::encode(self.signing_key.to_bytes());
         let data = format!("{}\n{}", public_key_hex, secret_key_hex);
         fs::write(filename, data).expect("Unable to save wallet");
     }
