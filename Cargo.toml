@@ -12,8 +12,8 @@ tokio = { version = "1.28.2", features = ["full"] }
 ed25519-dalek = "1.0.1"
 rand = { version = "0.8", features = ["std"] }
 clap = { version = "3.2.25", features = ["derive"] }
-bellman = "0.13.1"
-blstrs = { version = "0.3.9", default-features = false, features = ["std", "serde"] }
+bellman = "0.14.0"
+blstrs = { version = "0.7.1", features = ["serde"] } # Removed `std` feature
 ff = "0.13"
 group = "0.13"
 chrono = "0.4"
