@@ -1,33 +1,36 @@
 // src/zk_proofs.rs
 
 use bellman::{Circuit, ConstraintSystem, SynthesisError};
-use pairing::bls12_381::{Bls12, Fr};
-use ff::{Field, PrimeField};
-use bellman::groth16::{generate_random_parameters, create_random_proof, prepare_verifying_key, verify_proof};
+use bls12_381::{Bls12, Scalar};
+use ff::Field;
+use bellman::groth16::{
+    create_random_proof, generate_random_parameters, prepare_verifying_key, verify_proof,
+};
 use rand::rngs::OsRng;
 use bincode;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
 pub struct TransactionProof {
-    pub amount: Option<Fr>,
+    pub amount: Option<Scalar>,
 }
 
-impl Circuit<Fr> for TransactionProof {
-    fn synthesize<CS: ConstraintSystem<Fr>>(
+impl Circuit<Scalar> for TransactionProof {
+    fn synthesize<CS: ConstraintSystem<Scalar>>(
         self,
         cs: &mut CS,
     ) -> Result<(), SynthesisError> {
-        // Witness for amount
-        let amount_value = self.amount;
-
         // Allocate the private input (amount)
+        let amount_value = self.amount;
         let amount_allocated = cs.alloc(|| "amount", || amount_value.ok_or(SynthesisError::AssignmentMissing))?;
 
         // Example constraint: amount > 0
-        let zero = Fr::zero();
+        // Since we're working in a finite field, we can't directly enforce "greater than"
+        // Instead, we'll skip this and focus on a valid constraint for demonstration
+
+        // For example, we can enforce that amount * 1 = amount
         cs.enforce(
-            || "amount greater than zero",
+            || "amount consistency",
             |lc| lc + amount_allocated,
             |lc| lc + CS::one(),
             |lc| lc + amount_allocated,
@@ -44,29 +47,34 @@ pub struct Proof {
 }
 
 pub fn generate_transaction_proof(amount: u64) -> Proof {
-    let rng = &mut OsRng;
-    let amount_fr = Fr::from_str(&amount.to_string()).unwrap();
+    let mut rng = OsRng;
+    let amount_scalar = Scalar::from(amount);
 
     // Generate parameters
     let params = {
-        let c = TransactionProof { amount: None };
-        generate_random_parameters::<Bls12, _, _>(c, rng).unwrap()
+        let circuit = TransactionProof { amount: None };
+        generate_random_parameters::<Bls12, _, _>(circuit, &mut rng).unwrap()
     };
 
     // Prepare the verification key (for proof verification)
     let pvk = prepare_verifying_key(&params.vk);
 
     // Create an instance of the circuit (with the actual amount)
-    let c = TransactionProof { amount: Some(amount_fr) };
+    let circuit = TransactionProof {
+        amount: Some(amount_scalar),
+    };
 
     // Create a proof
-    let proof = create_random_proof(c, &params, rng).unwrap();
+    let proof = create_random_proof(circuit, &params, &mut rng).unwrap();
 
     // Serialize the proof and vk
     let proof_bytes = bincode::serialize(&proof).unwrap();
     let vk_bytes = bincode::serialize(&pvk).unwrap();
 
-    Proof { proof: proof_bytes, vk: vk_bytes }
+    Proof {
+        proof: proof_bytes,
+        vk: vk_bytes,
+    }
 }
 
 pub fn verify_transaction_proof(proof: &Proof) -> bool {
